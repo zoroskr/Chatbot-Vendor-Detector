@@ -1,4 +1,5 @@
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 import { vendors } from "./vendors";
 
 /**
@@ -10,22 +11,26 @@ import { vendors } from "./vendors";
  * @returns {Promise<{ vendor: string | null, method: string }>} - Detected vendor and the method used.
  */
 export const detectVendor = async (url: string) => {
-  const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36';
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: [      
-      "--no-sandbox", 
-      "--disable-setuid-sandbox",
-    ]
-  });
-  const page = await browser.newPage();
-  page.setUserAgent(ua);
+  const ua =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36";
 
-  // Set request interception
+  // Launch Puppeteer with Vercel-compatible settings
+  const browser = await puppeteer.launch({
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless === "new" ? true : false,
+  });
+
+  const page = await browser.newPage();
+  await page.setUserAgent(ua);
+
+  // Set request interception to block unnecessary resources
   await page.setRequestInterception(true);
-  page.on('request', (request) => {
-    if (request.resourceType() === 'image' || request.resourceType() === 'stylesheet' || request.resourceType() === 'font') {
-      // Block images, stylesheets, and fonts to optimize load
+  page.on("request", (request) => {
+    if (
+      ["image", "stylesheet", "font"].includes(request.resourceType())
+    ) {
       request.abort();
     } else {
       request.continue();
