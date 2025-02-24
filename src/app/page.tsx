@@ -1,4 +1,6 @@
-import { useState } from "react";
+"use client"
+
+import { JSX, useState } from "react";
 import "./globals.css"
 
 /**
@@ -8,7 +10,7 @@ import "./globals.css"
  *
  * @returns {JSX.Element} - Main interface component
  */
-export default function Home() {
+export default function Home(): JSX.Element {
   const [url, setUrl] = useState("");
   const [result, setResult] = useState<{
     vendor: string | null;

@@ -1,4 +1,4 @@
-import { detectVendor } from "../utils/detectVendor";
+import { detectVendor } from "@/utils/detectVendor";
 import readline from "readline";
 
 /**

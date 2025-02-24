@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { detectVendor } from "../../utils/detectVendor";
+import { detectVendor } from "@/utils/detectVendor";
 
 /**
  * API handler to detect chatbots on a given URL.
