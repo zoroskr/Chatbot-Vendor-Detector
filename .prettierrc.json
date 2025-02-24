@@ -1,0 +1,24 @@
+{
+    "plugins": ["@trivago/prettier-plugin-sort-imports"],
+    "semi": true,
+    "quoteProps": "preserve",
+    "printWidth": 110,
+    "importOrder": [
+      "react",
+      "^types/(.*)$",
+      "^redux/(.*)$",
+      "^service/(.*)$",
+      "^utils/(.*)$",
+      "^constants/(.*)$",
+      "^app/(.*)$",
+      "^pages/(.*)$",
+      "^components/(.*)$",
+      "^assets/images/(.*)$",
+      "^assets/svg/(.*)$",
+      "public/assets/(.*)$",
+      "^[./]"
+    ],
+    "importOrderSeparation": true,
+    "importOrderSortSpecifiers": true
+  }
+  
