@@ -1,33 +1,28 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextResponse } from "next/server";
 import { detectVendor } from "@/utils/detectVendor";
 
 /**
  * API handler to detect chatbots on a given URL.
  *
- * @param {NextApiRequest} req - The API request.
- * @param {NextApiResponse} res - The API response.
- * @returns {void}
+ * @param {Request} req - The API request.
+ * @returns {Promise<NextResponse>} - The API response.
  */
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
-  const { url } = req.body;
-  if (!url) {
-    return res.status(400).json({ error: "Missing URL" });
-  }
-
+export async function POST(req: Request): Promise<NextResponse> {
   try {
+    const body = await req.json();
+    const { url } = body;
+
+    if (!url) {
+      return NextResponse.json({ error: "Missing URL" }, { status: 400 });
+    }
+
     console.log(`Processing URL: ${url}`);
     const result = await detectVendor(url);
     console.log("Detection result:", result);
-    res.status(200).json(result);
+
+    return NextResponse.json(result, { status: 200 });
   } catch (error) {
     console.error("Error in detectVendor:", error);
-    res.status(500).json({ error: "Failed to analyze the page" });
+    return NextResponse.json({ error: "Failed to analyze the page" }, { status: 500 });
   }
 }
