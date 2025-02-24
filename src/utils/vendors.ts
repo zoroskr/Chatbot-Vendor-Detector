@@ -74,5 +74,11 @@ export const vendors = [
     website: "https://www.nuance.com/",
     networkKeyword: "nuance.com",
     windowObject: "nuanceData",
+  },
+  {
+    name: "Sprinklr",
+    website: "https://www.sprinklr.com/",
+    networkKeyword: "sprinklr.com",
+    windowObject: "sprChat",
   }
 ];
