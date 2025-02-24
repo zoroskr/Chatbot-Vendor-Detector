@@ -1,4 +1,4 @@
-# 🕵️‍♂️ Chatbot Vendor Detector  
+# 🕵️‍♂️ Chatbot Vendor Detector
 
 Chatbot Vendor Detector is a hybrid application that allows users to detect the vendor of a chatbot on any webpage they input. The application provides multiple ways to perform the detection:
 
@@ -28,27 +28,38 @@ Once a match is found, the app returns the vendor name and specifies which metho
 ## 🛠 Installation
 
 ### 1. Clone the repository:
+
 ```bash
 git clone https://github.com/JCAlmazan/Chatbot-Vendor-Detector.git
 ```
+
 ### 2. Install dependencies:
+
 ```bash
 cd chatbot-vendor-detector
-npm install
+pnpm install
 ```
+
 ### 3. Run the app (Web & API):
+
 You can run the web app and API locally with:
+
 ```bash
-npm run dev
+pnpm run dev
 ```
+
 ### 4. Run the CLI (locally):
+
 For CLI usage, simply run:
+
 ```bash
-npm run cli
+pnpm run cli
 ```
 
 ## 📄 License
+
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
 
 ## 🤝 Contributions
+
 Feel free to contribute by submitting pull requests or issues. Contributions are always welcome!
