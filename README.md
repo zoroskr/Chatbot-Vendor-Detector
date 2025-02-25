@@ -15,8 +15,8 @@ Once a match is found, the app returns the vendor name and specifies which metho
 ## 📋 Requirements
 To run this project locally or deploy it, you need:
 
-[Node.js](https://nodejs.org/es) (v18 or later recommended)
-[pnpm](https://pnpm.io/installation)
+- [Node.js](https://nodejs.org/es) (v18 or later recommended)
+- [pnpm](https://pnpm.io/installation)
 
 ## 🚀 Technologies Used
 
