@@ -12,6 +12,12 @@ The detection process is based on searching for either a **string in network tra
 
 Once a match is found, the app returns the vendor name and specifies which method was used for detection (network traffic, window object, or both). If no vendor is detected, the app will display a message indicating that no chatbot from the database was found on the webpage, along with a reminder that the detection method is not foolproof and should always be verified manually.
 
+## 📋 Requirements
+To run this project locally or deploy it, you need:
+
+[Node.js](https://nodejs.org/es) (v18 or later recommended)
+[pnpm](https://pnpm.io/installation)
+
 ## 🚀 Technologies Used
 
 - **Next.js** (App Router for modern routing)
@@ -36,7 +42,7 @@ git clone https://github.com/JCAlmazan/Chatbot-Vendor-Detector.git
 ### 2. Install dependencies:
 
 ```bash
-cd chatbot-vendor-detector
+cd Chatbot-Vendor-Detector
 pnpm install
 ```
 
