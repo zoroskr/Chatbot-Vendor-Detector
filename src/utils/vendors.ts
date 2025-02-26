@@ -80,5 +80,29 @@ export const vendors = [
     website: "https://www.sprinklr.com/",
     networkKeyword: "sprinklr.com",
     windowObject: "sprChat",
+  },
+  {
+    name: "Trengo",
+    website: "https://trengo.com/",
+    networkKeyword: "trengo.eu",
+    windowObject: "Trengo",
+  },
+  {
+    name: "Verloop",
+    website: "https://www.verloop.io/",
+    networkKeyword: "verloop.io",
+    windowObject: "Verloop",
+  },
+  {
+    name: "Liveperson",
+    website: "https://www.liveperson.com/",
+    networkKeyword: "liveperson.net",
+    windowObject: "liveperson",
+  },
+  {
+    name: "AdaSupport",
+    website: "https://www.ada.cx/",
+    networkKeyword: "ada.support",
+    windowObject: "adaSettings",
   }
 ];
