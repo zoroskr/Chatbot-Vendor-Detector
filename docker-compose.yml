@@ -1,23 +1,9 @@
 version: "3.8"
 services:
-  web:
+  chatbot-vendor-detector:
     build: .
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=development
-    command: ["pnpm", "run", "dev"]
-    volumes:
-      - .:/app
-      - /app/node_modules
-    restart: unless-stopped
-
-  cli:
-    build: .
-    environment:
-      - NODE_ENV=development
-    command: ["pnpm", "run", "cli"]
-    volumes:
-      - .:/app
-      - /app/node_modules
+      - NODE_ENV=production
     restart: unless-stopped
