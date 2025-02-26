@@ -46,11 +46,12 @@ export const vendors = [
     windowObject: "_hsq",
   },
   {
-    name: "Zendesk",
-    website: "https://www.zendesk.com/",
-    networkKeyword: "zendesk.com",
-    windowObject: "zE",
+    name: "Genesys",
+    website: "https://www.genesys.com/",
+    networkKeyword: "pure.cloud",
+    windowObject: "Genesys",
   },
+
   {
     name: "ChatBot.com",
     website: "https://www.chatbot.com/",
@@ -104,5 +105,12 @@ export const vendors = [
     website: "https://www.ada.cx/",
     networkKeyword: "ada.support",
     windowObject: "adaSettings",
-  }
+  },
+  {
+    name: "kommunicate",
+    website: "https://www.kommunicate.io/",
+    networkKeyword: "kommunicate.io",
+    windowObject: "kommunicate",
+  },
+  
 ];
