@@ -12,6 +12,14 @@ The detection process is based on searching for either a **string in network tra
 
 Once a match is found, the app returns the vendor name and specifies which method was used for detection (network traffic, window object, or both). If no vendor is detected, the app will display a message indicating that no chatbot from the database was found on the webpage, along with a reminder that the detection method is not foolproof and should always be verified manually.
 
+## 📋 Requirements
+
+To run this project locally or deploy it, you need:
+
+- [Node.js](https://nodejs.org/es) (v18 or later recommended)
+- [pnpm](https://pnpm.io/installation)
+- Docker (Optional, required only for running the app with Docker Compose)
+
 ## 🚀 Technologies Used
 
 - **Next.js** (App Router for modern routing)
@@ -19,6 +27,7 @@ Once a match is found, the app returns the vendor name and specifies which metho
 - **Node.js** (Backend logic and CLI tool)
 - **Tailwind CSS** (For fast and responsive styling)
 - **Playwright** (For analyzing network traffic during detection)
+- **Docker** (For containerization and easier deployment)
 
 ## 📌 Notes
 
@@ -36,7 +45,10 @@ git clone https://github.com/JCAlmazan/Chatbot-Vendor-Detector.git
 ### 2. Install dependencies:
 
 ```bash
-cd chatbot-vendor-detector
+cd Chatbot-Vendor-Detector
+```
+
+```bash
 pnpm install
 ```
 
@@ -54,6 +66,24 @@ For CLI usage, simply run:
 
 ```bash
 pnpm run cli
+```
+
+🌐 Running with Docker Compose
+
+If you want to run both the web app (API) and the CLI at the same time, you can use Docker Compose.
+
+1. Start the services:
+
+```bash
+docker-compose up
+```
+
+This will expose the application on http://localhost:3000.
+
+2. Stop the services:
+
+```bash
+docker-compose down
 ```
 
 ## 📄 License
