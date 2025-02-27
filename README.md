@@ -116,3 +116,9 @@ Feel free to contribute by submitting pull requests or issues.
 Adding more vendors to vendor database would be a great contribution.
 You only need to add the vendor information in vendors.ts file.
 Contributions are always welcome!
+
+---
+
+### 📄 Additional Documents  
+- [📘 Essay](ESSAY.md)  
+- [📜 Activity Log](ACTIVITYLOG.md)  
