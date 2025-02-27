@@ -129,7 +129,7 @@ The solution is conceived as a **monorepo** or unified structure with:
   {
     "vendor": "...",
     "method": "...",
-    ...
+    // ...
   }
   ```
 
