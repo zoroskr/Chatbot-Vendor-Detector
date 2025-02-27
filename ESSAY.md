@@ -131,6 +131,7 @@ The solution is conceived as a **monorepo** or unified structure with:
     "method": "...",
     ...
   }
+  ```
 
 ### Web Interface (Next.js + Tailwind)
 - A page hosted on Vercel where users can enter the URL in a form.
@@ -150,7 +151,8 @@ The solution is conceived as a **monorepo** or unified structure with:
     },
     // ... and so forth
   ];
-  ´´´
+  ```
+
 ## Technical Implementation
 
 ### Installation and Execution
