@@ -1,0 +1,8 @@
+node_modules
+.pnpm-store
+.dockerignore
+Dockerfile
+*.log
+.git
+.vercel
+.next/cache

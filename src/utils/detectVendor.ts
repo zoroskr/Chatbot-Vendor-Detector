@@ -14,69 +14,77 @@ export const detectVendor = async (url: string) => {
   const ua =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36";
 
-  // Launch Puppeteer with Vercel-compatible settings
-  const browser = await puppeteer.launch({
-    args: chromium.args,
-    defaultViewport: chromium.defaultViewport,
-    executablePath: await chromium.executablePath(),
-    headless: chromium.headless === "new" ? true : false,
-  });
+  let browser;
+  try {
+    debugger;
+    // Launch Puppeteer with Vercel-compatible settings
+    browser = await puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless === "new" ? true : false,
+    });
 
-  const page = await browser.newPage();
-  await page.setUserAgent(ua);
+    const page = await browser.newPage();
+    await page.setUserAgent(ua);
 
-  // Set request interception to block unnecessary resources
-  await page.setRequestInterception(true);
-  page.on("request", (request) => {
-    if (
-      ["image", "stylesheet", "font"].includes(request.resourceType())
-    ) {
-      request.abort();
-    } else {
-      request.continue();
-    }
-  });
+    // Set request interception to block unnecessary resources
+    await page.setRequestInterception(true);
+    page.on("request", (request) => {
+      if (["image", "stylesheet", "font"].includes(request.resourceType())) {
+        request.abort();
+      } else {
+        request.continue();
+      }
+    });
 
-  // Navigate to the URL with a 60-second timeout
-  await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
+    // Navigate to the URL with a 60-second timeout
+    await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
 
-  // Check network traffic
-  const responses = await page.evaluate(() =>
-    performance.getEntriesByType("resource").map((r) => r.name)
-  );
-
-  let detectedVendor = null;
-  let method = "";
-
-  // Check if any network resource contains vendor keywords
-  for (const vendor of vendors) {
-    if (responses.some((r) => r.includes(vendor.networkKeyword))) {
-      detectedVendor = vendor.name;
-      method = "network";
-      break;
-    }
-  }
-
-  // Check window objects
-  const detectedWindowVendor = await page.evaluate((vendors) => {
-    return (
-      vendors.find((v) => window[v.windowObject as keyof Window])?.name || null
+    // Check network traffic
+    const responses = await page.evaluate(() =>
+      performance.getEntriesByType("resource").map((r) => r.name)
     );
-  }, vendors);
 
-  if (detectedWindowVendor) {
-    if (detectedVendor) {
-      method = "both";
-    } else {
-      detectedVendor = detectedWindowVendor;
-      method = "window";
+    let detectedVendor = null;
+    let method = "";
+
+    // Check if any network resource contains vendor keywords
+    for (const vendor of vendors) {
+      if (responses.some((r) => r.includes(vendor.networkKeyword))) {
+        detectedVendor = vendor.name;
+        method = "network";
+        break;
+      }
     }
+
+    // Check window objects
+    const detectedWindowVendor = await page.evaluate((vendors) => {
+      return (
+        vendors.find((v) => window[v.windowObject as keyof Window])?.name || null
+      );
+    }, vendors);
+
+    if (detectedWindowVendor) {
+      if (detectedVendor) {
+        method = "both";
+      } else {
+        detectedVendor = detectedWindowVendor;
+        method = "window";
+      }
+    }
+
+    await browser.close();
+
+    return {
+      vendor: detectedVendor,
+      method: detectedVendor ? method : "none",
+    };
+  } catch (error) {
+    if (error instanceof Error && error.name === "TimeoutError") {
+      return { vendor: null, method: "timeout" };
+    }
+    console.error("Error detecting vendor:", error);
+    return { vendor: null, method: "error" };
   }
-
-  await browser.close();
-
-  return {
-    vendor: detectedVendor,
-    method: detectedVendor ? method : "none",
-  };
 };
