@@ -1,6 +1,7 @@
 /**
  * List of chatbot vendors.
  * Each vendor has a name, its website, a network traffic keyword, and a window object.
+ * To add a new vendor, just add it to the vendors array at the end with the same format as the existing vendors.
  */
 export const vendors = [
   {
@@ -112,5 +113,11 @@ export const vendors = [
     networkKeyword: "kommunicate.io",
     windowObject: "kommunicate",
   },
-  
+  /* Add new vendors here. Example:
+   {
+     name: "Example",
+     website: "https://example.com/",
+     networkKeyword: "example.com",
+     windowObject: "example",
+  },*/
 ];

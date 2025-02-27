@@ -112,4 +112,7 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 
 ## 🤝 Contributions
 
-Feel free to contribute by submitting pull requests or issues. Contributions are always welcome!
+Feel free to contribute by submitting pull requests or issues.
+Adding more vendors to vendor database would be a great contribution.
+You only need to add the vendor information in vendors.ts file.
+Contributions are always welcome!
