@@ -1,6 +1,6 @@
 # 🕵️‍♂️ Chatbot Vendor Detector
 
-Chatbot Vendor Detector is a hybrid application that allows users to detect the vendor of a chatbot on any webpage they input. The application provides multiple ways to perform the detection:
+Chatbot Vendor Detector is a hybrid application that allows users to detect the vendor of a chatbot on any webpage they input and evaluate the quality of welcome messages. The application provides multiple ways to perform the detection:
 
 - **CLI**: Executable via terminal.
 - **REST API**: Queryable through Postman or other tools.
@@ -8,9 +8,21 @@ Chatbot Vendor Detector is a hybrid application that allows users to detect the 
 
 ## 🔍 How It Works
 
+### Vendor Detection
 The detection process is based on searching for either a **string in network traffic** or an **object in `window`**. The app compares the values against a scalable vendor database, which contains vendor names, their website URLs, keywords to search for in network traffic (e.g., "service-now.com"), and keywords to look for in the `window` object (e.g., `window.NOW`).
 
 Once a match is found, the app returns the vendor name and specifies which method was used for detection (network traffic, window object, or both). If no vendor is detected, the app will display a message indicating that no chatbot from the database was found on the webpage, along with a reminder that the detection method is not foolproof and should always be verified manually.
+
+### Welcome Message Evaluation
+When a chatbot is detected, the application can also evaluate the quality of its welcome message. This process involves:
+
+1. Taking a screenshot of the webpage
+2. Using an AI model to identify the chatbot's position on the page
+3. Clicking on the chatbot to open it
+4. Capturing a screenshot of the opened chatbot
+5. Using AI to analyze and evaluate the welcome message for clarity, helpfulness, and user experience
+
+The evaluation provides insights into how well the chatbot introduces itself and guides users.
 
 ## 📋 Requirements
 
@@ -18,6 +30,15 @@ To run this project locally or deploy it, you need:
 
 - [Node.js](https://nodejs.org/es) (v18 or later recommended)
 - [Docker](https://www.docker.com/) (Optional, required only for running the app with Docker Compose)
+- An OpenAI API key (for the welcome message evaluation feature)
+
+## 🔑 Configuration
+
+To use the welcome message evaluation feature, you need to set your OpenAI API key in the `.env` file:
+
+```
+OPENAI_API_KEY=your_api_key_here
+```
 
 ## 🚀 Technologies Used
 
@@ -32,6 +53,7 @@ To run this project locally or deploy it, you need:
 
 - If no vendor is detected, a message will be shown explaining that no match was found. It also includes a disclaimer about the possibility of errors, encouraging manual verification.
 - The CLI is designed to run locally with Node.js. You can use the terminal to execute the detection script.
+- The welcome message evaluation requires an OpenAI API key with access to the GPT-4 Vision model.
 - When app is running, you can use the web app on http://localhost:3000 or try the API doing a POST request to http://localhost:3000/api/detect sending a body like this:
 
 ```json
@@ -39,6 +61,8 @@ To run this project locally or deploy it, you need:
   "url": "https://example.com"
 }
 ```
+
+The API will return both the vendor detection result and the welcome message evaluation if a chatbot is found.
 
 ## 🛠 Installation
 

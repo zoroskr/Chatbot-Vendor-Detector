@@ -8,7 +8,7 @@ import InfoIcon from "@/app/assets/icons/InfoIcon";
 /**
  * Home
  *
- * Main page with the interface to detect chatbots on a given URL.
+ * Main page with the interface to detect chatbots on a given URL and evaluate welcome messages.
  *
  * @returns {JSX.Element} - Main interface component
  */
@@ -17,18 +17,24 @@ export default function Home(): JSX.Element {
   const [result, setResult] = useState<{
     vendor: string | null;
     method: string;
+    welcomeMessage?: {
+      url: string;
+      evaluation: string;
+    };
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [analyzing, setAnalyzing] = useState(false);
 
     /**
    * handleDetectVendor
    *
-   * Sends the URL to the API to detect a chatbot.
+   * Sends the URL to the API to detect a chatbot and evaluate its welcome message.
    */
   const handleDetectVendor = async () => {
     if (!url) return;
     setLoading(true);
+    setAnalyzing(false);
     setError("");
     setResult(null);
 
@@ -43,6 +49,10 @@ export default function Home(): JSX.Element {
       const data = await response.json();
       if (response.ok) {
         setResult(data);
+        // If a vendor was detected, set analyzing to true while the welcome message is being processed
+        if (data.vendor) {
+          setAnalyzing(true);
+        }
       } else {
         setError(data.error || "An error occurred");
       }
@@ -68,7 +78,7 @@ export default function Home(): JSX.Element {
             </div>
           </div>
           <p className="text-sm text-gray-600 max-w-xs mb-2">
-            This tool identifies chatbot vendors on a given webpage using advanced detection algorithms!
+            This tool identifies chatbot vendors and evaluates welcome messages on a given webpage!
           </p>
           <input
             type="text"
@@ -87,21 +97,50 @@ export default function Home(): JSX.Element {
 
           {error && <p className="text-red-500 mt-4">{error}</p>}
           {result && (
-            <div className="mt-4 p-4 bg-gray-50 border rounded text-center">
+            <div className="mt-4 p-4 bg-gray-50 border rounded">
               {result.method === "timeout" ? (
-                <p className="text-orange-500 font-semibold">
+                <p className="text-orange-500 font-semibold text-center">
                   ⏳ The analysis timed out. The page might be too slow or unresponsive.
                 </p>
               ) : result.method === "error" ? (
-                <p className="text-red-500 font-semibold">
+                <p className="text-red-500 font-semibold text-center">
                   ❌ An error occurred while analyzing the page. Please try again later.
                 </p>
               ) : result.vendor ? (
-                <p className="text-green-600 font-semibold">
-                  ✅ Vendor Detected: {result.vendor} (Method: {result.method})
-                </p>
+                <div>
+                  <p className="text-green-600 font-semibold text-center">
+                    ✅ Vendor Detected: {result.vendor} (Method: {result.method})
+                  </p>
+                  
+                  {/* Welcome Message Section */}
+                  <div className="mt-4 border-t pt-4">
+                    <h3 className="text-lg font-medium mb-2">Welcome Message Analysis</h3>
+                    
+                    {analyzing && !result.welcomeMessage && (
+                      <div className="flex flex-col items-center justify-center py-4">
+                        <div className="animate-pulse flex flex-col items-center">
+                          <div className="w-full h-4 bg-gray-200 rounded mb-2"></div>
+                          <div className="w-full h-4 bg-gray-200 rounded mb-2"></div>
+                          <div className="w-3/4 h-4 bg-gray-200 rounded"></div>
+                        </div>
+                        <p className="text-sm text-gray-500 mt-2">Analyzing the welcome message...</p>
+                        <p className="text-xs text-gray-400 mt-1">This may take up to 60 seconds</p>
+                      </div>
+                    )}
+                    
+                    {result.welcomeMessage?.evaluation ? (
+                      <div className="text-sm">
+                        <p className="whitespace-pre-line text-gray-700">{result.welcomeMessage.evaluation}</p>
+                      </div>
+                    ) : !analyzing && (
+                      <p className="text-yellow-600 text-center">
+                        Welcome message analysis not available.
+                      </p>
+                    )}
+                  </div>
+                </div>
               ) : (
-                <p className="text-yellow-600">
+                <p className="text-yellow-600 text-center">
                   🔍 No chatbot vendor detected from our database.
                 </p>
               )}

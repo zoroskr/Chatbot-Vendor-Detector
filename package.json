@@ -9,7 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "cli": "tsx src/cli/index.ts"
+    "cli": "tsx src/cli/index.ts",
+    "test-welcome": "tsx src/cli/test-welcome.ts"
   },
   "keywords": [],
   "author": "",
@@ -18,6 +19,7 @@
     "@sparticuz/chromium": "^132.0.0",
     "next": "^15.1.7",
     "npm": "^11.1.0",
+    "openai": "^4.45.0",
     "puppeteer-core": "^24.2.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
