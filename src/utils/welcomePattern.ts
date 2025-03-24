@@ -16,6 +16,12 @@ interface ChatbotCoordinates {
   y: number;
 }
 
+interface RetryHistory {
+  attempt: number;
+  coordinates: ChatbotCoordinates;
+  error?: string;
+}
+
 /**
  * Convierte un Buffer a una cadena base64 válida para OpenAI
  * @param buffer Buffer de imagen
@@ -263,6 +269,211 @@ export async function evaluateWelcomeMessage(
 }
 
 /**
+ * Intenta detectar y abrir el chatbot con un sistema de reintentos inteligente
+ */
+async function retryOpenChatbot(
+  page: Page,
+  initialScreenshot: Buffer,
+  maxRetries: number = 3
+): Promise<{ success: boolean; screenshot?: Buffer; error?: string }> {
+  const retryHistory: RetryHistory[] = [];
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    console.log(`Intento ${attempt} de ${maxRetries} para abrir el chatbot...`);
+    
+    try {
+      // Obtener coordenadas considerando el historial de intentos
+      const coordinates = await getChatbotCoordinatesWithHistory(initialScreenshot, retryHistory);
+      console.log(`Intento ${attempt}: Usando coordenadas:`, coordinates);
+
+      // Registrar este intento en el historial
+      retryHistory.push({
+        attempt,
+        coordinates
+      });
+
+      // Intentar hacer clic en las coordenadas
+      await page.mouse.click(coordinates.x, coordinates.y);
+      await setTimeout(3000); // Esperar a que se abra el chatbot
+
+      // Tomar screenshot para verificar
+      const chatbotScreenshot = await capturePage("", page, `chatbot_screenshot_attempt_${attempt}.png`);
+      
+      // Verificar si el chatbot se abrió correctamente
+      const verificationResult = await verifyChatbotOpen(chatbotScreenshot);
+      
+      if (verificationResult.success) {
+        console.log(`Éxito en el intento ${attempt}: Chatbot detectado y abierto correctamente`);
+        return {
+          success: true,
+          screenshot: chatbotScreenshot
+        };
+      }
+
+      // Si no se abrió, registrar el error y continuar con el siguiente intento
+      retryHistory[retryHistory.length - 1].error = verificationResult.error;
+      console.warn(`Intento ${attempt} fallido:`, verificationResult.error);
+      
+      // Esperar un poco antes del siguiente intento
+      await setTimeout(2000);
+    } catch (error) {
+      console.error(`Error en el intento ${attempt}:`, error);
+      retryHistory[retryHistory.length - 1].error = error instanceof Error ? error.message : 'Error desconocido';
+    }
+  }
+
+  return {
+    success: false,
+    error: `No se pudo abrir el chatbot después de ${maxRetries} intentos`
+  };
+}
+
+/**
+ * Verifica si el chatbot está abierto en la imagen
+ */
+async function verifyChatbotOpen(screenshot: Buffer): Promise<{ success: boolean; error?: string }> {
+  try {
+    const base64Image = bufferToBase64(screenshot);
+    
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are a computer vision assistant that verifies if a chatbot widget is open in screenshots."
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Is there an open chatbot widget visible in this screenshot? Look for typical chatbot interfaces like message windows, chat bubbles, or conversation interfaces. Respond with ONLY 'true' if you see an open chatbot, or 'false' if you don't. No other text."
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${base64Image}`,
+              },
+            },
+          ],
+        },
+      ],
+      max_tokens: 10,
+    });
+
+    const content = response.choices[0]?.message?.content?.toLowerCase() || '';
+    const isOpen = content.includes('true');
+    
+    return {
+      success: isOpen,
+      error: isOpen ? undefined : 'No se detectó un chatbot abierto en la imagen'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: 'Error al verificar si el chatbot está abierto'
+    };
+  }
+}
+
+/**
+ * Obtiene las coordenadas del chatbot considerando el historial de intentos previos
+ */
+async function getChatbotCoordinatesWithHistory(
+  screenshot: Buffer,
+  history: RetryHistory[]
+): Promise<ChatbotCoordinates> {
+  const base64Image = bufferToBase64(screenshot);
+  
+  // Construir el mensaje con el historial de intentos
+  let historyMessage = "";
+  if (history.length > 0) {
+    historyMessage = "\n\nPrevious attempts failed with these coordinates:\n" +
+      history.map(h => `Attempt ${h.attempt}: x=${h.coordinates.x}, y=${h.coordinates.y} - ${h.error || 'No error details'}`).join('\n') +
+      "\nPlease suggest different coordinates avoiding these areas.";
+  }
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are a computer vision assistant that identifies chatbot widgets in web pages."
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `Look at this website screenshot and find the chatbot widget. It's usually a button or icon in a corner of the page (often in the bottom right). The widget is usually a circle, and its color contrasts with the background. Return ONLY a JSON object with the x and y coordinates of the center of the widget for better precision. Format: {'x': number, 'y': number}${historyMessage}`
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${base64Image}`,
+              },
+            },
+          ],
+        },
+      ],
+      max_tokens: 300,
+    });
+
+    const content = response.choices[0]?.message?.content || "";
+    console.log("OpenAI response for coordinates:", content);
+
+    // Intentar extraer las coordenadas con los diferentes métodos
+    try {
+      // ... (mantener el código existente de extracción de coordenadas) ...
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const coordinates = JSON.parse(jsonMatch[0]) as ChatbotCoordinates;
+        if (typeof coordinates.x === 'number' && typeof coordinates.y === 'number') {
+          return coordinates;
+        }
+      }
+
+      const xMatch = content.match(/x\s*[:=]\s*(\d+)/i);
+      const yMatch = content.match(/y\s*[:=]\s*(\d+)/i);
+      
+      if (xMatch && yMatch) {
+        return {
+          x: parseInt(xMatch[1], 10),
+          y: parseInt(yMatch[1], 10)
+        };
+      }
+      
+      const coordsMatch = content.match(/\((\d+)[,\s]+(\d+)\)/);
+      if (coordsMatch) {
+        return {
+          x: parseInt(coordsMatch[1], 10),
+          y: parseInt(coordsMatch[2], 10)
+        };
+      }
+
+      // Si no se encontraron coordenadas, usar valores predeterminados ajustados según el historial
+      if (history.length > 0) {
+        // Ajustar las coordenadas predeterminadas basándose en los intentos anteriores
+        const lastAttempt = history[history.length - 1];
+        return {
+          x: lastAttempt.coordinates.x + 50, // Intentar un poco más a la derecha
+          y: lastAttempt.coordinates.y - 50  // Intentar un poco más arriba
+        };
+      }
+
+      return { x: 1200, y: 700 }; // Valores predeterminados para el primer intento
+    } catch (parseError) {
+      console.error("Error parsing coordinates:", parseError);
+      return { x: 1200, y: 700 };
+    }
+  } catch (error) {
+    console.error("OpenAI API error:", error);
+    return { x: 1200, y: 700 };
+  }
+}
+
+/**
  * Main function to process a URL, detect the chatbot, and evaluate its welcome message
  * @param url URL of the page to analyze
  * @returns Object containing the evaluation and the vendor
@@ -311,73 +522,41 @@ export async function processWelcomeMessage(url: string) {
     console.log("Taking initial screenshot...");
     const initialScreenshot = await capturePage(url, page, "initial_screenshot.png");
     
-    // Verificar si pudimos obtener la captura inicial
     if (!initialScreenshot || initialScreenshot.length === 0) {
       throw new Error("No se pudo capturar la pantalla inicial");
     }
 
-    // Get chatbot coordinates
-    console.log("Getting chatbot coordinates...");
-    const coordinates = await getChatbotCoordinates(initialScreenshot);
-    console.log("Chatbot detected at coordinates:", coordinates);
+    // Intentar abrir el chatbot con el sistema de reintentos
+    const chatbotResult = await retryOpenChatbot(page, initialScreenshot);
 
-    // Verificar si las coordenadas son válidas
-    if (!coordinates || (coordinates.x <= 0 && coordinates.y <= 0)) {
-      throw new Error("No se pudieron obtener coordenadas válidas para el chatbot");
-    }
-
-    try {
-      // Click on the chatbot to open it
-      console.log("Clicking on chatbot...");
-      await page.mouse.click(coordinates.x, coordinates.y);
-
-      // Wait for the chatbot to open
-      await setTimeout(3000);
-
-      // Take a screenshot with the open chatbot
-      console.log("Taking screenshot with open chatbot...");
-      const chatbotScreenshot = await capturePage(url, page, "chatbot_screenshot.png");
-
-      // Verificar si pudimos obtener la captura del chatbot
-      if (!chatbotScreenshot || chatbotScreenshot.length === 0) {
-        throw new Error("No se pudo capturar la pantalla del chatbot después de hacer clic");
-      }
-
-      // Evaluate the welcome message
+    if (chatbotResult.success && chatbotResult.screenshot) {
+      // Evaluar el mensaje de bienvenida
       console.log("Evaluating welcome message...");
-      const evaluation = await evaluateWelcomeMessage(chatbotScreenshot);
+      const evaluation = await evaluateWelcomeMessage(chatbotResult.screenshot);
 
       await browser.close();
-
       return {
         url,
         evaluation,
+        attempts: "success"
       };
-    } catch (clickError) {
-      console.error("Error después de detectar el chatbot:", clickError);
+    } else {
+      // Si no se pudo abrir el chatbot, intentar evaluar la pantalla completa
+      console.log("Fallback: evaluating full page...");
+      const fullPageScreenshot = await page.screenshot({
+        type: 'jpeg',
+        quality: 50
+      }) as Buffer;
       
-      // Si falla después de hacer clic, intentar una captura completa de la página
-      console.log("Intentando capturar pantalla completa como alternativa...");
-      try {
-        const fullPageScreenshot = await page.screenshot({
-          type: 'jpeg',
-          quality: 50
-        }) as Buffer;
-        
-        console.log("Evaluando la pantalla completa...");
-        const evaluation = await evaluateWelcomeMessage(fullPageScreenshot);
-        
-        await browser.close();
-        
-        return {
-          url,
-          evaluation,
-          note: "La evaluación se realizó en la pantalla completa, no se pudo abrir el chatbot"
-        };
-      } catch (fallbackError) {
-        console.error("Error en el intento alternativo:", fallbackError);
-        throw new Error("No se pudo evaluar el mensaje de bienvenida del chatbot");
-      }
+      const evaluation = await evaluateWelcomeMessage(fullPageScreenshot);
+      
+      await browser.close();
+      return {
+        url,
+        evaluation,
+        attempts: "failed",
+        error: chatbotResult.error
+      };
     }
   } catch (error) {
     if (browser) {
