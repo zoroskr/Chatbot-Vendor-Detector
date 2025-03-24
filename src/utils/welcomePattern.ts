@@ -113,7 +113,7 @@ export async function getChatbotCoordinates(
             content: [
               {
                 type: "text",
-                text: "Look at this website screenshot and find the chatbot widget. It's usually a button or icon in a corner of the page (often in the bottom right). Return ONLY a JSON object with the x and y coordinates where I should click to open the chatbot. Format: {\"x\": number, \"y\": number}"
+                text: "Look at this website screenshot and find the chatbot widget. It's usually a button or icon in a corner of the page (often in the bottom right). The widget is usually a circle, and its color contrasts with the background. Return ONLY a JSON object with the x and y coordinates of the center of the widget for better precision. Format: {'x': number, 'y': number}"
               },
               {
                 type: "image_url",
@@ -223,7 +223,7 @@ export async function evaluateWelcomeMessage(
             content: [
               {
                 type: "text",
-                text: "Analyze this chatbot welcome message. Evaluate the following aspects: 1) How clear and instructive is the welcome message, 2) Does it explain what the chatbot can help with, 3) Is the message friendly and engaging, 4) How well does it guide the user to take the next action. Provide a detailed analysis with specific suggestions for improvement."
+                text: "Analyze the welcome messages of the chatbot widget in the provided screenshot. If no chatbot widget is detected, respond with 'No chatbot widget found for analysis.' If found, list the analyzed messages (truncated if too long, max 300 characters) and provide a score from 1 to 100 based on clarity, usefulness, friendliness, and guidance. Keep the response concise."
               },
               {
                 type: "image_url",
@@ -287,7 +287,6 @@ export async function processWelcomeMessage(url: string) {
         defaultViewport: { width: 1280, height: 800 },
         executablePath,
         headless: false,
-        devtools: true,
       });
     } else {
       // En producción, usar la configuración compatible con Vercel
