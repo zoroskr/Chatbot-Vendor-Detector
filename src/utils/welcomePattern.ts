@@ -229,7 +229,7 @@ export async function evaluateWelcomeMessage(
             content: [
               {
                 type: "text",
-                text: "Analyze the welcome messages of the chatbot widget in the provided screenshot. If no chatbot widget is detected, respond with 'No chatbot widget found for analysis.' If found, list the analyzed messages (truncated if too long, max 300 characters) and provide a score from 1 to 100 based on clarity, usefulness, friendliness, and guidance. Keep the response concise."
+                text: "Analyze the welcome messages of the chatbot widget in the provided screenshot. If no chatbot widget is detected, respond with 'No chatbot widget found for analysis.' If found, list the analyzed messages (truncated if too long, max 300 characters) and provide a score from 1 to 100 based on how well they introduce the chatbot’s main functionalities or offer a tutorial in the initial interactions. Keep the response concise."
               },
               {
                 type: "image_url",
