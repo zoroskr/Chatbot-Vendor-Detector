@@ -1,3 +1,13 @@
+import dotenv from 'dotenv';
+// Load environment variables first
+dotenv.config();
+
+// Validate OpenAI API key
+const apiKey = process.env.OPENAI_API_KEY;
+if (!apiKey) {
+  throw new Error('OPENAI_API_KEY environment variable is missing. Please add it to your .env file.');
+}
+
 import puppeteer from "puppeteer-core";
 import type { Page } from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
@@ -6,9 +16,9 @@ import fs from "fs";
 import { OpenAI } from "openai";
 import {setTimeout} from "node:timers/promises";
 
-// Initialize OpenAI client
+// Initialize OpenAI client with validated API key
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: apiKey,
 });
 
 interface ChatbotCoordinates {
@@ -229,7 +239,7 @@ export async function evaluateWelcomeMessage(
             content: [
               {
                 type: "text",
-                text: "Analyze the welcome messages of the chatbot widget in the provided screenshot. If no chatbot widget is detected, respond with 'No chatbot widget found for analysis.' If found, list the analyzed messages (truncated if too long, max 300 characters) and provide a score from 1 to 100 based on how well they introduce the chatbot’s main functionalities or offer a tutorial in the initial interactions. Keep the response concise."
+                text: "Analyze the welcome messages of the chatbot widget in the provided screenshot. If no chatbot widget is detected, respond with 'No chatbot widget found for analysis.' If found, list the analyzed messages (truncated if too long, max 300 characters) and provide a score from 1 to 100 based on how well they introduce the chatbot's main functionalities or offer a tutorial in the initial interactions. Keep the response concise."
               },
               {
                 type: "image_url",
@@ -484,30 +494,46 @@ export async function processWelcomeMessage(url: string) {
 
   let browser;
   try {
-    // Determinar si estamos en desarrollo o producción
-    const isDev = process.env.NODE_ENV === 'development';
-    
-    // Configuración del navegador según el entorno
-    if (isDev) {
-      // En desarrollo, usar el navegador local si está disponible
-      const executablePath = process.env.BROWSER_PATH || "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe";
-      const filteredArgs = chromium.args.filter(arg => !arg.includes('--headless'));
-      
-      browser = await puppeteer.launch({
-        args: filteredArgs,
-        defaultViewport: { width: 1280, height: 800 },
-        executablePath,
-        headless: false,
-      });
-    } else {
-      // En producción, usar la configuración compatible con Vercel
-      browser = await puppeteer.launch({
-        args: chromium.args,
-        defaultViewport: chromium.defaultViewport,
-        executablePath: await chromium.executablePath(),
-        headless: chromium.headless === "new" ? true : false,
-      });
+    // Intentar diferentes rutas para el navegador
+    const possiblePaths = [
+      "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
+      "C:\\Program Files (x86)\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
+      "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+      "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+      process.env.BROWSER_PATH // Usar la ruta personalizada si está definida
+    ].filter(Boolean); // Eliminar valores nulos/undefined
+
+    let executablePath;
+    for (const path of possiblePaths) {
+      if (path && fs.existsSync(path)) {
+        executablePath = path;
+        break;
+      }
     }
+
+    if (!executablePath) {
+      throw new Error("No se encontró ningún navegador compatible instalado. Por favor, instala Brave o Chrome, o especifica la ruta en BROWSER_PATH.");
+    }
+
+    console.log(`Usando navegador en: ${executablePath}`);
+
+    // Configuración del navegador
+    const browserConfig = {
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu',
+        '--window-size=1280,800'
+      ],
+      defaultViewport: { width: 1280, height: 800 },
+      executablePath,
+      headless: true // Usar modo no headless para mejor compatibilidad
+    };
+
+    browser = await puppeteer.launch(browserConfig);
+    console.log("Navegador iniciado correctamente");
 
     const page = await browser.newPage();
     await page.setUserAgent(ua);

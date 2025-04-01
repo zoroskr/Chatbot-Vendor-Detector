@@ -10,20 +10,22 @@
     "start": "next start",
     "lint": "next lint",
     "cli": "tsx src/cli/index.ts",
-    "test-welcome": "tsx src/cli/test-welcome.ts"
+    "test-welcome": "tsx src/scripts/test-welcome.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@sparticuz/chromium": "^132.0.0",
+    "dotenv": "^16.4.7",
     "lucide-react": "^0.485.0",
     "next": "^15.1.7",
     "npm": "^11.1.0",
     "openai": "^4.45.0",
     "puppeteer-core": "^24.2.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.0",
