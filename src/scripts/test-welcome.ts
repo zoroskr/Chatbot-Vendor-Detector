@@ -4,6 +4,7 @@ import * as XLSX from 'xlsx';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import fs from 'fs';
 
 // Get current file path in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -14,6 +15,37 @@ interface TestResult {
   website: string;
   evaluation: string;
   wasDetected: boolean;
+  screenshot?: Buffer;
+  screenshotPath?: string;
+}
+
+/**
+ * Guarda una imagen en disco y devuelve la ruta
+ * @param buffer Buffer de la imagen
+ * @param vendorName Nombre del vendor para el nombre del archivo
+ * @returns Ruta del archivo guardado
+ */
+function saveScreenshot(buffer: Buffer, vendorName: string): string {
+  try {
+    // Crear directorio si no existe
+    const screenshotsDir = path.join(process.cwd(), "vendor_screenshots");
+    if (!fs.existsSync(screenshotsDir)) {
+      fs.mkdirSync(screenshotsDir, { recursive: true });
+    }
+    
+    // Generar nombre de archivo único
+    const fileName = `${vendorName.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.jpg`;
+    const filePath = path.join(screenshotsDir, fileName);
+    
+    // Guardar la imagen
+    fs.writeFileSync(filePath, buffer);
+    console.log(`Screenshot saved to ${filePath}`);
+    
+    return filePath;
+  } catch (error) {
+    console.error("Error saving screenshot:", error);
+    return "";
+  }
 }
 
 /**
@@ -27,11 +59,19 @@ async function testVendor(vendor: typeof vendors[0]): Promise<TestResult> {
   try {
     const result = await processWelcomeMessage(vendor.website);
     
+    // Guardar la captura de pantalla si existe
+    let screenshotPath = "";
+    if (result.screenshot) {
+      screenshotPath = saveScreenshot(result.screenshot, vendor.name);
+    }
+    
     return {
       vendor: vendor.name,
       website: vendor.website,
       evaluation: result.evaluation,
-      wasDetected: result.attempts === "success"
+      wasDetected: result.chatbotDetected || false,
+      screenshot: result.screenshot,
+      screenshotPath
     };
   } catch (error) {
     console.error(`Error testing ${vendor.name}:`, error);
@@ -59,20 +99,21 @@ function updateExcel(results: TestResult[], outputPath: string) {
     wb = XLSX.utils.book_new();
   }
   
-  // Preparar los datos
+  // Preparar los datos para la hoja principal
   const data = [
     // Headers
-    ['Vendor', 'Website', 'Welcome Message Evaluation', 'Was Detected'],
+    ['Vendor', 'Website', 'Welcome Message Evaluation', 'Was Detected', 'Screenshot Path'],
     // Data rows
     ...results.map(r => [
       r.vendor,
       r.website,
       r.evaluation,
-      r.wasDetected ? 'Yes' : 'No'
+      r.wasDetected ? 'Yes' : 'No',
+      r.screenshotPath || 'No screenshot'
     ])
   ];
 
-  // Crear la worksheet
+  // Crear la worksheet principal
   const ws = XLSX.utils.aoa_to_sheet(data);
 
   // Ajustar el ancho de las columnas
@@ -80,7 +121,8 @@ function updateExcel(results: TestResult[], outputPath: string) {
     { wch: 20 },  // Vendor
     { wch: 40 },  // Website
     { wch: 80 },  // Evaluation
-    { wch: 12 }   // Was Detected
+    { wch: 12 },  // Was Detected
+    { wch: 60 }   // Screenshot Path
   ];
   ws['!cols'] = colWidths;
 
@@ -116,6 +158,9 @@ async function runTests() {
       console.log(`Result for ${vendor.name}:`);
       console.log(`- Evaluation: ${result.evaluation.substring(0, 100)}...`);
       console.log(`- Detected: ${result.wasDetected ? 'Yes' : 'No'}`);
+      if (result.screenshotPath) {
+        console.log(`- Screenshot saved: ${result.screenshotPath}`);
+      }
       
       // Actualizar el Excel después de cada vendor
       updateExcel(results, outputPath);
