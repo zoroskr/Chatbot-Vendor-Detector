@@ -16,14 +16,18 @@ export const detectVendor = async (url: string) => {
 
   let browser;
   try {
-    debugger;
+    const filteredArgs = chromium.args.filter(arg => !arg.includes('--headless'));
+
     // Launch Puppeteer with Vercel-compatible settings
     browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless === "new" ? true : false,
+      args: filteredArgs,
+      defaultViewport: { width: 1280, height: 800 },
+      executablePath: "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
+      headless: false,
+      devtools: true, // Abre DevTools automáticamente
     });
+
+    
 
     const page = await browser.newPage();
     await page.setUserAgent(ua);

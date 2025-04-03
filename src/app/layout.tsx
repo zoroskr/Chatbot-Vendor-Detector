@@ -1,3 +1,4 @@
+import "./globals.css"
 export const metadata = {
   title: 'Chatbot Vendor Detector',
   description: 'Identify chatbot vendors on a given webpage using advanced detection algorithms.',

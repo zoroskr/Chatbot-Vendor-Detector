@@ -16,13 +16,15 @@ export async function POST(req: Request): Promise<NextResponse> {
       return NextResponse.json({ error: "Missing URL" }, { status: 400 });
     }
 
-    console.log(`Processing URL: ${url}`);
-    const result = await detectVendor(url);
-    console.log("Detection result:", result);
+    console.log(`Processing URL for vendor detection: ${url}`);
+    
+    // Detect vendor
+    const vendorResult = await detectVendor(url);
+    console.log("Detection result:", vendorResult);
 
-    return NextResponse.json(result, { status: 200 });
+    return NextResponse.json(vendorResult, { status: 200 });
   } catch (error) {
-    console.error("Error in detectVendor:", error);
+    console.error("Error in detect API:", error);
     return NextResponse.json({ error: "Failed to analyze the page" }, { status: 500 });
   }
 }
