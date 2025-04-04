@@ -99,6 +99,12 @@ export async function capturePage(
 export async function evaluateWelcomeMessage(
   screenshot: Buffer
 ): Promise<{ text: string; chatbotDetected: boolean }> {
+
+  return {
+    text: "No chatbot widget found for analysis.",
+    chatbotDetected: false,
+  };
+
   try {
     // Convert buffer to base64 string properly for OpenAI API
     const base64Image = bufferToBase64(screenshot);
@@ -159,7 +165,7 @@ export async function evaluateWelcomeMessage(
           param: errorDetail.param
         });
         
-        throw new Error(`Error en la API de OpenAI: ${error.message}`);
+        throw new Error(`Error en la API de OpenAI: ${(error as Error).message}`);
       }
       
       throw new Error(`Error desconocido en la API de OpenAI`);
@@ -404,6 +410,126 @@ async function findAndActivateChatElement(page: Page): Promise<boolean> {
     const chatButtons = await page.evaluate(() => {
       // Selectores comunes para botones de chat
       const selectors = [
+        // Intercom específico
+        '.intercom-lightweight-app-launcher',
+        '.intercom-launcher',
+        '[class*="intercom-lightweight-app-launcher" i]',
+        '.intercom-lightweight-app-launcher-icon',
+        
+        // Tidio específico
+        '#tidio-chat-iframe',
+        '[title="Tidio Chat"]',
+        
+        // LiveChat específico
+        '#chat-widget-container',
+        '#chat-widget-minimized',
+        '[id*="chat-widget" i]',
+        
+        // HubSpot específico
+        '#hubspot-conversations-iframe',
+        '[title="Chat Widget"]',
+        '[data-test-id="chat-widget-iframe"]',
+        
+        // Chatbot.com específico
+        '#chat-widget-container',
+        '#chat-widget-minimized',
+        'iframe[src*="openwidget.com" i]',
+        
+        // Trengo específico
+        '.trengo-vue-iframe',
+        '[title="trengo-widget-launcher"]',
+        
+        // Verloop específico
+        '.verloop-button',
+        '.verloop-livechat-logo',
+        '.verloop-livechat-unread-count',
+        '[class*="verloop" i]',
+        '[id*="verloop" i]',
+        
+        // Kommunicate específico
+        '[id="kommunicate-widget-iframe"]',
+        '.kommunicate-custom-iframe',
+        
+        // H&M específico
+        '#CXButtonContainer',
+        '#CXButton',
+        '[aria-label="Open Digital Assistant"]',
+        '[title="Open Digital Assistant"]',
+        
+        // UPS específico
+        '#inqChatStage',
+        '[title="Chat Window"]',
+        
+        // ADIB específico
+        '.message-sticky',
+        '#btnchatclick',
+        
+        // BellaSante específico (también usa Tidio)
+        '[title="Tidio Chat"][class*="awesome-iframe"]',
+        
+        // Devialet específico
+        '#launcher[title="Botón para iniciar la ventana de mensajería"]',
+        
+        // Expedia específico
+        '#vac_iframe',
+        '.vac_iframe',
+        '[title="Chat Window"]',
+        
+        // Eye-OO específico
+        '#tidio-chat-iframe[class*="awesome-iframe"]',
+        
+        // IHERB específico
+        '#ada-button-frame',
+        '[title="Iherb Chat Button Frame"]',
+        
+        // PluralSight específico
+        '#launcher[title="Button to launch messaging window"]',
+        
+        // Procosmet específico (similar a Tidio)
+        '[title="Tidio Chat"][srcdoc*="awesome-iframe"]',
+        
+        // Zillow específico
+        '.genesys-mxg-frame',
+        '.genesys-mxg-launcher-frame',
+        '#genesys-mxg-frame',
+        '[title="Messenger Launcher"]',
+        
+        // Vodafone específico
+        '.tobi-header-cta',
+        '#fixedBtn2',
+        '[id*="fixedBtn" i]',
+        
+        // Samsung específico
+        '[name="spr-chat__trigger-frame"]',
+        '[title="Live chat"]',
+        '[aria-label="Live chat"]',
+        
+        // Jio específico
+        '.chatbotEntry',
+        '.circle-rippl',
+        '.chatbotImg',
+        '.open_chatbox',
+        '[alt="Chat Bot Avatar"]',
+        
+        // Sensely específico
+        '#__sensely-include-widget-dropdown-image',
+        'img[src*="sense.ly" i]',
+        
+        // Standard Chartered específico
+        '.chatbot-icon-wrapper',
+        '.chatbot-avatar',
+        '#chatbot-icon',
+        '.icon-sc-chatbot-avatar-round',
+        
+        // Ikea específico
+        '#syndeo-chatbot-start-chat-button',
+        '[role="button"][aria-label="Start Chat"]',
+        
+        // AT&T específico
+        '[data-testid="chatButton"]',
+        '#chatActiveBtn',
+        '.chatfrontend-ui__chat-btn-container',
+        
         // Selectores específicos para Kommunicate
         '#km-chat-widget-btn',
         '.km-chat-widget-btn',
@@ -412,13 +538,6 @@ async function findAndActivateChatElement(page: Page): Promise<boolean> {
         '#kommunicate-widget-iframe',
         '.kommunicate-custom-iframe',
         '.chat-popup-widget-actionable',
-        
-        // Selectores específicos para Verloop
-        '.verloop-button',
-        '.verloop-livechat-logo',
-        '.verloop-livechat-unread-count',
-        '[class*="verloop" i]',
-        '[id*="verloop" i]',
         
         // Chat selectores generales
         'button[id*="chat" i]',
@@ -650,6 +769,116 @@ async function findAndActivateChatElement(page: Page): Promise<boolean> {
       }
     }
     
+    // 5. Intentar detectar por objetos de ventana específicos de proveedores
+    // Basado en los objetos de ventana definidos en vendors.ts
+    const vendorDetected = await page.evaluate(() => {
+      // Lista de objetos de ventana a detectar (copiada de vendors.ts)
+      const vendorWindowObjects = [
+        "drift", "Intercom", "tidioChatApi", "LC_API", "_hsq", "__chatbot", 
+        "Trengo", "Verloop", "kommunicate", "HM", "UPS", "Vainu", "ADIB", 
+        "BellaSante", "Devialet", "Expedia", "EyeOO", "IHerb", "PluralSight", 
+        "Procosmet", "Zillow", "Vodafone", "Samsung", "Jio", "Sensely", "SC", 
+        "IKEA", "ATT"
+      ];
+      
+      // Buscar objetos de ventana disponibles
+      const detectedVendors = vendorWindowObjects.filter(objName => {
+        try {
+          const windowObj = window as any;
+          return windowObj[objName] !== undefined;
+        } catch (e) {
+          return false;
+        }
+      });
+      
+      console.log("Detected vendors by window objects:", detectedVendors);
+      
+      if (detectedVendors.length > 0) {
+        // Si encontramos objetos de chatbot, buscar elementos visibles
+        // para los proveedores detectados
+        const vendorSelectors: string[] = [];
+        
+        // Agregar selectores específicos según los proveedores detectados
+        detectedVendors.forEach(vendor => {
+          switch(vendor) {
+            case "Intercom":
+              vendorSelectors.push('.intercom-launcher', '.intercom-lightweight-app-launcher');
+              break;
+            case "tidioChatApi":
+              vendorSelectors.push('#tidio-chat-iframe', '[title="Tidio Chat"]');
+              break;
+            case "LC_API":
+              vendorSelectors.push('#chat-widget-container', '#chat-widget-minimized');
+              break;
+            case "_hsq": // HubSpot
+              vendorSelectors.push('#hubspot-conversations-iframe', '[data-test-id="chat-widget-iframe"]');
+              break;
+            case "Verloop":
+              vendorSelectors.push('.verloop-button', '.verloop-livechat-logo');
+              break;
+            case "kommunicate":
+              vendorSelectors.push('#kommunicate-widget-iframe', '.kommunicate-custom-iframe');
+              break;
+            default:
+              // Para otros proveedores, agregar selectores genéricos
+              vendorSelectors.push(
+                `[id*="${vendor.toLowerCase()}" i]`,
+                `[class*="${vendor.toLowerCase()}" i]`,
+                'button[id*="chat" i]',
+                'div[id*="chat" i]'
+              );
+          }
+        });
+        
+        // Buscar y devolver elementos visibles que correspondan a los selectores
+        const vendorElements = vendorSelectors.flatMap(selector => {
+          try {
+            return Array.from(document.querySelectorAll(selector));
+          } catch (e) {
+            return [];
+          }
+        });
+        
+        // Filtrar elementos duplicados y obtener coordenadas
+        const uniqueElements = Array.from(new Set(vendorElements));
+        const clickableElements = uniqueElements
+          .map(element => {
+            try {
+              const rect = element.getBoundingClientRect();
+              return {
+                tag: element.tagName,
+                id: element.id || '',
+                className: element.className || '',
+                x: rect.x + rect.width / 2,
+                y: rect.y + rect.height / 2,
+                width: rect.width,
+                height: rect.height,
+                visible: rect.width > 0 && rect.height > 0 && 
+                        window.getComputedStyle(element).display !== 'none' &&
+                        window.getComputedStyle(element).visibility !== 'hidden'
+              };
+            } catch (e) {
+              return null;
+            }
+          })
+          .filter(info => info && info.visible);
+        
+        if (clickableElements.length > 0) {
+          // Devolver el primer elemento clickeable
+          return clickableElements[0];
+        }
+      }
+      
+      return null;
+    });
+    
+    if (vendorDetected && typeof vendorDetected.x === 'number' && typeof vendorDetected.y === 'number') {
+      console.log(`Haciendo clic en elemento detectado por objeto de ventana: ${JSON.stringify(vendorDetected)}`);
+      await page.mouse.click(vendorDetected.x, vendorDetected.y);
+      await setTimeout(6000); // Esperar a que se abra el chat
+      return true;
+    }
+    
     console.log("No se encontraron elementos de chat en la página");
     return false;
   } catch (error) {
@@ -688,6 +917,48 @@ async function detectAndOpenChatbot(
       }
     }
     
+    // Intentar métodos adicionales para interactuar con iframes
+    console.log("Intentando interactuar con chatbots en iframes...");
+    const iframeInteractionResult = await interactWithChatbotIframes(page);
+    
+    if (iframeInteractionResult) {
+      // Tomar screenshot para verificar
+      await setTimeout(3000); // Esperar un poco para que se abra el chat
+      const chatbotScreenshot = await capturePage("", page, "chatbot_iframe_detected.png");
+      
+      // Verificar si el chatbot se abrió correctamente usando la misma función de evaluación
+      const evaluationResult = await evaluateWelcomeMessage(chatbotScreenshot);
+      
+      if (evaluationResult.chatbotDetected) {
+        console.log("Éxito: Chatbot en iframe detectado y abierto correctamente");
+        return {
+          success: true,
+          screenshot: chatbotScreenshot
+        };
+      }
+    }
+    
+    // Último intento: patrones específicos de DOM para cada vendedor
+    console.log("Intentando patrones específicos de DOM para cada vendedor...");
+    const vendorPatternResult = await clickVendorSpecificPatterns(page);
+    
+    if (vendorPatternResult) {
+      // Tomar screenshot para verificar
+      await setTimeout(3000); // Esperar un poco para que se abra el chat
+      const chatbotScreenshot = await capturePage("", page, "chatbot_vendor_pattern_detected.png");
+      
+      // Verificar si el chatbot se abrió correctamente usando la misma función de evaluación
+      const evaluationResult = await evaluateWelcomeMessage(chatbotScreenshot);
+      
+      if (evaluationResult.chatbotDetected) {
+        console.log("Éxito: Chatbot detectado usando patrones específicos de vendedor");
+        return {
+          success: true,
+          screenshot: chatbotScreenshot
+        };
+      }
+    }
+    
     // Si llegamos aquí, no pudimos abrir el chatbot
     return {
       success: false,
@@ -699,6 +970,503 @@ async function detectAndOpenChatbot(
       success: false,
       error: error instanceof Error ? error.message : "Error desconocido"
     };
+  }
+}
+
+/**
+ * Intenta interactuar con chatbots que están dentro de iframes
+ * @param page Página de Puppeteer
+ * @returns Si se logró interactuar exitosamente
+ */
+async function interactWithChatbotIframes(page: Page): Promise<boolean> {
+  try {
+    // 1. Detectar todos los iframes en la página
+    const frameHandles = await page.$$('iframe');
+    
+    console.log(`Encontrados ${frameHandles.length} iframes en la página`);
+    
+    // Iterar por cada iframe
+    for (const frameHandle of frameHandles) {
+      try {
+        // Obtener información básica del iframe
+        const frameInfo = await page.evaluate(frame => {
+          if (!frame) return null;
+          
+          try {
+            const src = frame.src || '';
+            const id = frame.id || '';
+            const title = frame.title || '';
+            const className = frame.className || '';
+            
+            const rect = frame.getBoundingClientRect();
+            const isVisible = rect.width > 0 && rect.height > 0;
+            
+            return {
+              src,
+              id,
+              title,
+              className,
+              x: rect.x + rect.width / 2,
+              y: rect.y + rect.height / 2,
+              width: rect.width,
+              height: rect.height,
+              isVisible,
+              isChatRelated: 
+                src.toLowerCase().includes('chat') || 
+                id.toLowerCase().includes('chat') || 
+                title.toLowerCase().includes('chat') ||
+                className.toLowerCase().includes('chat') ||
+                src.toLowerCase().includes('messaging') ||
+                id.toLowerCase().includes('widget') ||
+                className.toLowerCase().includes('widget') ||
+                // Patrones específicos de proveedores conocidos
+                src.includes('livechatinc.com') ||
+                src.includes('tidio.com') ||
+                src.includes('intercom.io') ||
+                src.includes('hubspot.com') ||
+                src.includes('drift.com') ||
+                src.includes('openwidget.com')
+            };
+          } catch (e) {
+            return null;
+          }
+        }, frameHandle);
+        
+        // Si el iframe no se ve como un chat o no es visible, pasar al siguiente
+        if (!frameInfo || !frameInfo.isVisible) continue;
+        
+        console.log(`Analizando iframe: ${JSON.stringify(frameInfo)}`);
+        
+        // Si el iframe parece ser de chat, intentar interactuar con él
+        if (frameInfo.isChatRelated) {
+          console.log(`Intentando interactuar con iframe relacionado con chat: ${frameInfo.id || frameInfo.src}`);
+          
+          // Intentar obtener el contenido del iframe
+          const frame = await frameHandle.contentFrame();
+          
+          if (frame) {
+            // Método 1: Buscar elementos de chat dentro del iframe
+            const chatButtonFound = await frame.evaluate(() => {
+              // Lista de selectores de botones comunes
+              const selectors = [
+                'button[id*="chat" i]',
+                'button[class*="chat" i]',
+                'div[id*="chat" i]',
+                'div[class*="chat" i]',
+                'a[id*="chat" i]',
+                'span[id*="chat" i]',
+                '[id*="launcher" i]',
+                '[class*="launcher" i]',
+                '[class*="icon" i][id*="open" i]',
+                '[class*="open" i]',
+                '[class*="button" i]',
+                '.conversation-launcher',
+                '.chat-button',
+                '.message-button',
+                // Buscar por atributos aria
+                '[role="button"]',
+                '[aria-label*="chat" i]',
+                '[aria-label*="message" i]',
+                '[title*="chat" i]',
+                // Botones con íconos
+                'svg',
+                'img[alt*="chat" i]',
+                // Cualquier botón
+                'button',
+                // Divs que parecen botones
+                'div[role="button"]',
+                // Elementos con eventos de clic
+                '[onclick]'
+              ];
+              
+              // Buscar y hacer clic en el primer botón visible
+              for (const selector of selectors) {
+                const elements = document.querySelectorAll(selector);
+                for (const el of Array.from(elements)) {
+                  // Verificar si es visible
+                  const rect = el.getBoundingClientRect();
+                  if (rect.width > 0 && rect.height > 0) {
+                    // Intentar hacer clic en el elemento
+                    try {
+                      (el as HTMLElement).click();
+                      console.log(`Clic exitoso en elemento ${selector} dentro del iframe`);
+                      return true;
+                    } catch (e) {
+                      console.log(`Error al hacer clic en ${selector}:`, e);
+                    }
+                  }
+                }
+              }
+              
+              return false;
+            });
+            
+            if (chatButtonFound) {
+              console.log("Se ha hecho clic en un elemento de chat dentro del iframe");
+              await setTimeout(5000); // Dar tiempo al chat para abrirse
+              return true;
+            }
+          }
+          
+          // Método 2: Si no podemos acceder al contenido del iframe, hacer clic en el iframe mismo
+          if (frameInfo.x && frameInfo.y) {
+            console.log(`Haciendo clic en el iframe en (${frameInfo.x}, ${frameInfo.y})`);
+            await page.mouse.click(frameInfo.x, frameInfo.y);
+            await setTimeout(3000);
+            
+            // Intentar hacer un segundo clic en la misma posición para activar el chatbot
+            await page.mouse.click(frameInfo.x, frameInfo.y);
+            await setTimeout(5000);
+            
+            // Si el iframe era un botón de chat, debería haberse abierto ahora
+            return true;
+          }
+        }
+      } catch (frameError) {
+        console.warn("Error al analizar iframe:", frameError);
+        // Continuar con el siguiente iframe
+      }
+    }
+    
+    // No se pudo interactuar con ningún iframe
+    return false;
+  } catch (error) {
+    console.error("Error al interactuar con iframes:", error);
+    return false;
+  }
+}
+
+/**
+ * Intenta detectar y hacer clic en patrones específicos de DOM para diferentes vendedores de chatbot
+ * basado en la información de comun_selectors.md
+ * @param page Página de Puppeteer
+ * @returns Si se logró hacer clic en un patrón específico de vendedor
+ */
+async function clickVendorSpecificPatterns(page: Page): Promise<boolean> {
+  try {
+    // Definir patrones específicos para cada vendedor
+    const vendorPatterns = [
+      // Intercom
+      { 
+        name: 'Intercom', 
+        selectors: [
+          '.intercom-lightweight-app-launcher', 
+          '.intercom-launcher', 
+          '[aria-label="Open Intercom Messenger"]'
+        ] 
+      },
+      // Tidio
+      { 
+        name: 'Tidio', 
+        selectors: [
+          '#tidio-chat-iframe',
+          'iframe[title="Tidio Chat"]'
+        ],
+        frameSelectors: ['div:first-child']
+      },
+      // LiveChat
+      { 
+        name: 'LiveChat', 
+        selectors: [
+          '#chat-widget-container',
+          '#chat-widget-minimized'
+        ] 
+      },
+      // HubSpot
+      { 
+        name: 'HubSpot', 
+        selectors: [
+          '#hubspot-conversations-iframe',
+          'iframe[title="Chat Widget"]',
+          'iframe[data-test-id="chat-widget-iframe"]'
+        ] 
+      },
+      // Chatbot.com
+      { 
+        name: 'Chatbot', 
+        selectors: [
+          '#chat-widget-container',
+          '#chat-widget-minimized',
+          'iframe[src*="openwidget.com"]'
+        ] 
+      },
+      // Trengo
+      { 
+        name: 'Trengo', 
+        selectors: [
+          '.trengo-vue-iframe',
+          'iframe[title="trengo-widget-launcher"]'
+        ] 
+      },
+      // Verloop
+      { 
+        name: 'Verloop', 
+        selectors: [
+          '.verloop-button',
+          '.verloop-livechat-logo',
+          '.verloop-livechat-unread-count'
+        ] 
+      },
+      // Kommunicate
+      { 
+        name: 'Kommunicate', 
+        selectors: [
+          'iframe#kommunicate-widget-iframe',
+          '.kommunicate-custom-iframe'
+        ] 
+      },
+      // H&M
+      { 
+        name: 'H&M', 
+        selectors: [
+          '#CXButtonContainer',
+          '#CXButton',
+          'button[aria-label="Open Digital Assistant"]',
+          'button[title="Open Digital Assistant"]'
+        ] 
+      },
+      // UPS
+      { 
+        name: 'UPS', 
+        selectors: [
+          '#inqChatStage',
+          'iframe[title="Chat Window"]'
+        ] 
+      },
+      // ADIB
+      { 
+        name: 'ADIB', 
+        selectors: [
+          '.message-sticky',
+          '#btnchatclick',
+          'a[id="btnchatclick"]'
+        ] 
+      },
+      // BellaSante
+      { 
+        name: 'BellaSante', 
+        selectors: [
+          'iframe[title="Tidio Chat"][srcdoc*="awesome-iframe"]'
+        ] 
+      },
+      // Devialet
+      { 
+        name: 'Devialet', 
+        selectors: [
+          '#launcher[title="Botón para iniciar la ventana de mensajería"]',
+          'iframe[title*="Botón para iniciar"]'
+        ] 
+      },
+      // Expedia
+      { 
+        name: 'Expedia', 
+        selectors: [
+          '#vac_iframe',
+          '.vac_iframe',
+          'iframe[title="Chat Window"]'
+        ] 
+      },
+      // Eye-OO
+      { 
+        name: 'Eye-OO', 
+        selectors: [
+          '#tidio-chat-iframe[srcdoc*="awesome-iframe"]'
+        ] 
+      },
+      // IHERB
+      { 
+        name: 'IHERB', 
+        selectors: [
+          '#ada-button-frame',
+          'iframe[title="Iherb Chat Button Frame"]',
+          'iframe[sandbox*="allow-same-origin"][id="ada-button-frame"]'
+        ] 
+      },
+      // PluralSight
+      { 
+        name: 'PluralSight', 
+        selectors: [
+          '#launcher[title="Button to launch messaging window"]',
+          'iframe[title*="Button to launch messaging"]'
+        ] 
+      },
+      // Procosmet
+      { 
+        name: 'Procosmet', 
+        selectors: [
+          'iframe[title="Tidio Chat"][srcdoc*="awesome-iframe"]'
+        ] 
+      },
+      // Zillow
+      { 
+        name: 'Zillow', 
+        selectors: [
+          '.genesys-mxg-frame',
+          '.genesys-mxg-launcher-frame',
+          '#genesys-mxg-frame',
+          'iframe[title="Messenger Launcher"]'
+        ] 
+      },
+      // Vodafone
+      { 
+        name: 'Vodafone', 
+        selectors: [
+          '.tobi-header-cta',
+          '#fixedBtn2',
+          'div[style*="background-color: rgb(0, 0, 0)"]'
+        ] 
+      },
+      // Samsung
+      { 
+        name: 'Samsung', 
+        selectors: [
+          'iframe[aria-label="Live chat"]',
+          'iframe[name="spr-chat__trigger-frame"]',
+          'iframe[title="Live chat"]'
+        ] 
+      },
+      // Jio
+      { 
+        name: 'Jio', 
+        selectors: [
+          '.chatbotEntry',
+          '.chatbotImg',
+          '.open_chatbox',
+          'img[alt="Chat Bot Avatar"]',
+          '.circle-rippl'
+        ] 
+      },
+      // Sensely
+      { 
+        name: 'Sensely', 
+        selectors: [
+          '#__sensely-include-widget-dropdown-image',
+          'img[src*="sense.ly"]'
+        ] 
+      },
+      // Standard Chartered
+      { 
+        name: 'Standard Chartered', 
+        selectors: [
+          '.chatbot-icon-wrapper',
+          '.chatbot-avatar',
+          '#chatbot-icon',
+          '.icon-sc-chatbot-avatar-round'
+        ] 
+      },
+      // IKEA
+      { 
+        name: 'IKEA', 
+        selectors: [
+          '#syndeo-chatbot-start-chat-button',
+          '[role="button"][aria-label="Start Chat"]'
+        ] 
+      },
+      // AT&T
+      { 
+        name: 'AT&T', 
+        selectors: [
+          '[data-testid="chatButton"]',
+          '#chatActiveBtn',
+          '.chatfrontend-ui__chat-btn-container'
+        ] 
+      }
+    ];
+    
+    // Intentar detectar y hacer clic en un patrón específico de cada vendedor
+    for (const pattern of vendorPatterns) {
+      console.log(`Buscando patrones específicos para ${pattern.name}...`);
+      
+      // Buscar elementos que coincidan con los selectores
+      // @ts-ignore - Browser code in evaluate doesn't need TS checking
+      const matchResult = await page.evaluate((selectors) => {
+        for (const selector of selectors) {
+          try {
+            const elements = document.querySelectorAll(selector);
+            
+            for (const element of Array.from(elements)) {
+              const rect = element.getBoundingClientRect();
+              
+              // Verificar si el elemento es visible
+              if (rect.width > 0 && rect.height > 0 && 
+                  window.getComputedStyle(element).display !== 'none' &&
+                  window.getComputedStyle(element).visibility !== 'hidden') {
+                
+                return {
+                  selector,
+                  x: rect.x + rect.width / 2,
+                  y: rect.y + rect.height / 2,
+                  width: rect.width,
+                  height: rect.height
+                };
+              }
+            }
+          } catch (e) {
+            continue;
+          }
+        }
+        
+        return null;
+      }, pattern.selectors);
+      
+      // Si encontramos un elemento, hacer clic en él
+      if (matchResult) {
+        console.log(`Encontrado elemento de ${pattern.name} con selector ${matchResult.selector}`);
+        console.log(`Haciendo clic en (${matchResult.x}, ${matchResult.y})`);
+        
+        await page.mouse.click(matchResult.x, matchResult.y);
+        await setTimeout(3000);
+        
+        // Si hay selectores específicos de iframe, intentar interactuar con ellos
+        if (pattern.frameSelectors && pattern.frameSelectors.length > 0) {
+          const frameHandles = await page.$$('iframe');
+          
+          for (const frameHandle of frameHandles) {
+            const frame = await frameHandle.contentFrame();
+            
+            if (frame) {
+              // @ts-ignore - Browser code in evaluate doesn't need TS checking
+              const frameClickResult = await frame.evaluate((selectors) => {
+                for (const selector of selectors) {
+                  try {
+                    const elements = document.querySelectorAll(selector);
+                    for (const element of Array.from(elements)) {
+                      const rect = element.getBoundingClientRect();
+                      if (rect.width > 0 && rect.height > 0) {
+                        try {
+                          (element as HTMLElement).click();
+                          return true;
+                        } catch (e) {
+                          continue;
+                        }
+                      }
+                    }
+                  } catch (e) {
+                    continue;
+                  }
+                }
+                return false;
+              }, pattern.frameSelectors);
+              
+              if (frameClickResult) {
+                console.log(`Clic adicional en elemento dentro del iframe para ${pattern.name}`);
+                await setTimeout(3000);
+              }
+            }
+          }
+        }
+        
+        // Esperar a que se abra el chat
+        await setTimeout(3000);
+        return true;
+      }
+    }
+    
+    console.log("No se encontraron patrones específicos de vendedor");
+    return false;
+  } catch (error) {
+    console.error("Error al intentar patrones específicos de vendedor:", error);
+    return false;
   }
 }
 
@@ -744,14 +1512,14 @@ export async function processWelcomeMessage(url: string) {
         '--disable-dev-shm-usage',
         '--disable-accelerated-2d-canvas',
         '--disable-gpu',
-        '--window-size=768,1024',
+        '--window-size=1024,1024',
         '--enable-features=NetworkService',
         '--allow-running-insecure-content',
         '--enable-automation'
       ],
-      defaultViewport: { width: 768, height: 1024 },
+      defaultViewport: { width: 1024, height: 1024 },
       executablePath,
-      headless: true // Usar modo headless
+      headless: false // Usar modo headless
     };
 
     browser = await puppeteer.launch(browserConfig);
@@ -760,18 +1528,6 @@ export async function processWelcomeMessage(url: string) {
     const page = await browser.newPage();
     await page.setUserAgent(ua);
     
-    // Configurar la emulación de dispositivo móvil
-    await page.emulate({
-      viewport: { 
-        width: 768,
-        height: 1024,
-        deviceScaleFactor: 1,
-        isMobile: true,
-        hasTouch: true,
-        isLandscape: false
-      },
-      userAgent: ua
-    });
 
     // Navigate to the URL with a timeout
     await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });

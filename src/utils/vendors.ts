@@ -5,113 +5,166 @@
  */
 export const vendors = [
   {
-    name: "ServiceNow",
-    website: "https://www.servicenow.com/",
-    networkKeyword: "service-now.com",
-    windowObject: "NOW",
-  },
-  {
-    name: "Drift",
-    website: "https://www.drift.com/",
-    networkKeyword: "drift.com",
-    windowObject: "drift",
-  },
-  {
     name: "Intercom",
-    website: "https://www.intercom.com/",
+    website: "https://www.intercom.com/", // 🟢
     networkKeyword: "intercom.io",
     windowObject: "Intercom",
   },
   {
     name: "Tidio",
-    website: "https://www.tidio.com/",
+    website: "https://www.tidio.com/", // 🟢
     networkKeyword: "tidio.com",
     windowObject: "tidioChatApi",
   },
   {
     name: "LiveChat",
-    website: "https://www.LiveChat.com/",
+    website: "https://www.LiveChat.com/", // 🟢
     networkKeyword: "livechatinc.com",
     windowObject: "LC_API",
   },
   {
-    name: "Drift",
-    website: "https://www.drift.com/",
-    networkKeyword: "drift.com",
-    windowObject: "drift",
-  },
-  {
     name: "HubSpot",
-    website: "https://www.hubspot.com/",
+    website: "https://www.hubspot.com/", // 🟢
     networkKeyword: "hubspot.com",
     windowObject: "_hsq",
   },
   {
-    name: "Genesys",
-    website: "https://www.genesys.com/",
-    networkKeyword: "pure.cloud",
-    windowObject: "Genesys",
-  },
-
-  {
     name: "ChatBot.com",
-    website: "https://www.chatbot.com/",
+    website: "https://www.chatbot.com/", // 🟢
     networkKeyword: "cloudfront.net/chatbot",
     windowObject: "__chatbot",
   },
   {
-    name: "Freshchat",
-    website: "https://www.freshchat.com/",
-    networkKeyword: "freshchat.com",
-    windowObject: "fcWidget",
-  },
-  {
-    name: "Salesforce",
-    website: "https://www.salesforce.com/",
-    networkKeyword: "salesforce.com",
-    windowObject: "sf",
-  },
-  {
-    name: "Nuance",
-    website: "https://www.nuance.com/",
-    networkKeyword: "nuance.com",
-    windowObject: "nuanceData",
-  },
-  {
-    name: "Sprinklr",
-    website: "https://www.sprinklr.com/",
-    networkKeyword: "sprinklr.com",
-    windowObject: "sprChat",
-  },
-  {
     name: "Trengo",
-    website: "https://trengo.com/",
+    website: "https://trengo.com/", // 🟢
     networkKeyword: "trengo.eu",
     windowObject: "Trengo",
   },
   {
     name: "Verloop",
-    website: "https://www.verloop.io/",
+    website: "https://www.verloop.io/", // 🟢
     networkKeyword: "verloop.io",
     windowObject: "Verloop",
   },
   {
-    name: "Liveperson",
-    website: "https://www.liveperson.com/",
-    networkKeyword: "liveperson.net",
-    windowObject: "liveperson",
-  },
-  {
-    name: "AdaSupport",
-    website: "https://www.ada.cx/",
-    networkKeyword: "ada.support",
-    windowObject: "adaSettings",
-  },
-  {
     name: "kommunicate",
-    website: "https://www.kommunicate.io/",
+    website: "https://www.kommunicate.io/", // 🟢
     networkKeyword: "kommunicate.io",
     windowObject: "kommunicate",
+  },
+  {
+    name: "H&M",
+    website: "https://www2.hm.com/en_us/customer-service.html",
+    networkKeyword: "hm.com",
+    windowObject: "HM",
+  },
+  {
+    name: "UPS",
+    website: "https://www.ups.com/gb/en/support/contact-us.page",
+    networkKeyword: "ups.com",
+    windowObject: "UPS",
+  },
+  {
+    name: "Vainu",
+    website: "https://www.vainu.com",
+    networkKeyword: "vainu.com",
+    windowObject: "Vainu",
+  },
+  {
+    name: "ADIB Bank",
+    website: "https://www.adib.ae/en", // 🟢
+    networkKeyword: "adib.ae",
+    windowObject: "ADIB",
+  },
+  {
+    name: "BellaSante",
+    website: "https://bellasante.com/",
+    networkKeyword: "bellasante.com",
+    windowObject: "BellaSante",
+  },
+  {
+    name: "Devialet",
+    website: "https://help.devialet.com/hc/es", // 🟢
+    networkKeyword: "devialet.com",
+    windowObject: "Devialet",
+  },
+  {
+    name: "Expedia",
+    website: "https://www.expedia.com",
+    networkKeyword: "expedia.com",
+    windowObject: "Expedia",
+  },
+  {
+    name: "Eye-OO",
+    website: "https://www.eye-oo.com",
+    networkKeyword: "eye-oo.com",
+    windowObject: "EyeOO",
+  },
+  {
+    name: "IHerb",
+    website: "https://ar.iherb.com/help/contact", // 🟢
+    networkKeyword: "iherb.com",
+    windowObject: "IHerb",
+  },
+  {
+    name: "PluralSight",
+    website: "https://help.pluralsight.com/hc/en-us", // 🟢
+    networkKeyword: "pluralsight.com",
+    windowObject: "PluralSight",
+  },
+  {
+    name: "Procosmet",
+    website: "https://procosmet.com",
+    networkKeyword: "procosmet.com",
+    windowObject: "Procosmet",
+  },
+  {
+    name: "Zillow",
+    website: "https://zillow.zendesk.com/hc/en-us/",
+    networkKeyword: "zillow.com",
+    windowObject: "Zillow",
+  },
+  {
+    name: "Vodafone",
+    website: "https://www.vodafone.co.uk/contact-us/", // 🟢
+    networkKeyword: "vodafone.co.uk",
+    windowObject: "Vodafone",
+  },
+  {
+    name: "Samsung",
+    website: "https://www.samsung.com/latin_en/support/contact/", // 🟢
+    networkKeyword: "samsung.com",
+    windowObject: "Samsung",
+  },
+  {
+    name: "Reliance Jio",
+    website: "https://www.jio.com/help/home#/",
+    networkKeyword: "jio.com",
+    windowObject: "Jio",
+  },
+  {
+    name: "Sensely",
+    website: "https://sensely.com/", // 🟢
+    networkKeyword: "sensely.com",
+    windowObject: "Sensely",
+  },
+  {
+    name: "Standard Chartered",
+    website: "https://www.sc.com/hk/help/chat-with-us/", // 🟢
+    networkKeyword: "sc.com",
+    windowObject: "SC",
+  },
+  {
+    name: "IKEA",
+    website: "https://www.ikea.com/gb/en/customer-service/contact-us/",
+    networkKeyword: "ikea.com",
+    windowObject: "IKEA",
+  },
+  {
+    name: "AT&T",
+    website: "https://m.att.com/chat/", // 🟢
+    networkKeyword: "att.com",
+    windowObject: "ATT",
   },
   /* Add new vendors here. Example:
    {
